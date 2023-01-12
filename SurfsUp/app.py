@@ -15,6 +15,7 @@ engine = create_engine("sqlite:///../Resources/hawaii.sqlite")
 
 # reflect an existing database into a new model
 Base = automap_base()
+
 # reflect the tables
 Base.prepare(autoload_with=engine)
 
@@ -22,40 +23,14 @@ Base.prepare(autoload_with=engine)
 Measurement = Base.classes.measurement
 Station = Base.classes.station
 
-# Create session (link) from Python to the DB
+# Create session (link) from Python to the DB 
 session = Session(engine)
+
 
 #################################################
 # Flask Setup
 #################################################
 app = Flask(__name__)
-
-
-#################################################
-# Flask Routes
-#################################################
-
-@app.route("/")
-def welcome():
-    """List all available api routes."""
-    return (
-        f"<h2>Welcome to Surf's Up Weather Alchemy!</h2>"
-        f"<b>Available Routes:</b><br>"
-        f"/api/v1.0/precipitation<br>"
-        f"<i>(Dates and precipitation amounts recorded from the most recent 12 months)</i><br><br>"
-
-        f"/api/v1.0/stations<br>"
-        f"<i>(A list of our observation stations)</i><br><br>"
-
-        f"/api/v1.0/tobs<br>"
-        f"<i>(Temperature observations from the most recent 12 months at our most active station)</i><br><br>"
-
-        f"/api/v1.0/<start><br>"
-        f"<i>(Find the minimum, average and max temperature since a given start day)</i><br><br>"
-
-        f"/api/v1.0/<start>/<end><br>"
-        f"<i>(Find the minimum, average and max temperature for a given range of days - start to end)</i><br><br>"
-    )
 
 # Create Global variables defining most recent date, date 12 months prior, and most active station
     # Determine most recent date in the data set
@@ -70,6 +45,32 @@ most_active = session.query(Measurement.station, func.count(Measurement.tobs)).\
     order_by(func.count(Measurement.tobs).desc()).first()
 
 
+#################################################
+# Flask Routes
+#################################################
+@app.route("/")
+def welcome():
+    """List all available api routes."""
+    return (
+        f"<h2>Welcome to Surf's Up Weather Alchemy!</h2>"
+        f"<b>Available Routes:</b><br>"
+        f"/api/v1.0/precipitation<br>"
+        f"<i>(Date and precipitation amounts from the most recent 12 months of available data)</i><br><br>"
+
+        f"/api/v1.0/stations<br>"
+        f"<i>(A list of our observation stations)</i><br><br>"
+
+        f"/api/v1.0/tobs<br>"
+        f"<i>(Temperature observations from the most recent 12 months of available data at our most active station)</i><br><br>"
+
+        f"/api/v1.0/<start><br>"
+        f"<i>(Find the minimum, average and max temperature since a given start day)</i><br><br>"
+
+        f"/api/v1.0/<start>/<end><br>"
+        f"<i>(Find the minimum, average and max temperature for a given range of days - start to end)</i><br><br>"
+    )
+
+
 # Setup precipitation Route
 @app.route("/api/v1.0/precipitation")
 def precipitation():  
@@ -79,7 +80,7 @@ def precipitation():
     filter(Measurement.date >= prev_year).\
     order_by(Measurement.date).all()
 
-      # Convert queried list of tuples into dictionary with date as key and prcp as value
+    # Convert queried list of tuples into dictionary with date as key and prcp as value
     prevyear_precipitation = dict((x, y) for x, y in prevyear_prcp)    
 
     return jsonify(prevyear_precipitation)
@@ -121,8 +122,8 @@ def start_temps(start):
     beginning from the date variable supplied by the user.""" 
     # Query list for tmin, tavg & tmax temps    
     defsel = [func.min(Measurement.tobs),
-            func.avg(Measurement.tobs),
-            func.max(Measurement.tobs)]
+        func.avg(Measurement.tobs),
+        func.max(Measurement.tobs)]
     
     # Query data by unpacking query list and using user provided start date 
     start_range = session.query(*defsel).\
@@ -141,8 +142,8 @@ def start_end_temps(start, end):
     beginning from the start date to the end date variables supplied by the user.""" 
     # Create Query list for tmin, tavg & tmax temps    
     defsel = [func.min(Measurement.tobs),
-            func.avg(Measurement.tobs),
-            func.max(Measurement.tobs)]
+        func.avg(Measurement.tobs),
+        func.max(Measurement.tobs)]
     
     # Query data by unpacking query list and using user provided start and end dates
     start_end_range = session.query(*defsel).\
